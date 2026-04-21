@@ -1,0 +1,15 @@
+node_modules
+dist
+dev-dist
+.DS_Store
+*.log
+.vite
+
+# Env: commit only the example.
+.env
+.env.*
+!.env.example
+
+# Design handoff bundle (source-of-truth spec, not source code)
+Simple Intervals (1)/
+*.zip
