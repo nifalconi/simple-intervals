@@ -232,7 +232,7 @@ export default function Runner({
           <div
             key={i}
             className={"pip " + pp.status}
-            style={{ "--p": pp.pVal } as CSSProperties}
+            style={{ "--p": String(pp.pVal) } as CSSProperties}
           />
         ))}
       </div>
@@ -272,7 +272,7 @@ export default function Runner({
                   {isCurrent && (
                     <div
                       className="fill"
-                      style={{ "--p": displayStyle === "drain" ? (1 - p) : p } as CSSProperties}
+                      style={{ "--p": String(displayStyle === "drain" ? (1 - p) : p) } as CSSProperties}
                     />
                   )}
                   <div className="l-body">
@@ -316,7 +316,7 @@ export default function Runner({
         >
           <div
             className="fill"
-            style={{ "--p": displayStyle === "drain" ? (1 - p) : p } as CSSProperties}
+            style={{ "--p": String(displayStyle === "drain" ? (1 - p) : p) } as CSSProperties}
           />
           <div className="content">
             <div>
