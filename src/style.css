@@ -507,14 +507,14 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .current-card .fill {
   position: absolute; inset: 0;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.4);
   transform-origin: left;
   transform: scaleX(var(--p, 0));
-  transition: transform .2s linear;
   z-index: 0;
+  will-change: transform;
 }
 [data-theme="dark"] .current-card .fill {
-  background: rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.32);
 }
 .current-card.style-drain .fill { transform-origin: right; }
 .current-card .content {
@@ -601,8 +601,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: var(--accent);
   transform-origin: left;
   transform: scaleX(var(--p, 0));
-  transition: transform .2s linear;
   z-index: 0;
+  will-change: transform;
 }
 .run-list-item.style-drain .fill { transform-origin: right; }
 .run-list-item.current.rest .fill { background: var(--accent-soft); }
