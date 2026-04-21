@@ -1,6 +1,6 @@
 // Runner — live interval timer with focus and list view modes.
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Icon } from "./icons.tsx";
 import { fmtTime, type HistoryEntryInput, type Routine } from "./store.ts";
 import { playCue, type CueName } from "./lib/intervals-audio.ts";
@@ -76,18 +76,31 @@ export default function Runner({
   const current = seq[idx];
   const next = seq[idx + 1];
 
-  const play = useCallback((cue: CueName) => {
-    if (!soundOn) return;
-    playCue(s.soundKit, cue, 0.5);
-  }, [soundOn, s.soundKit]);
+  // Capture the bits the RAF loop reads into a ref so the loop itself
+  // only re-mounts on idx / paused / finished. Prevents racing RAFs when
+  // the parent re-renders and passes new (but deep-equal) routine/prefs.
+  const liveRef = useRef({ current, s, seq, soundOn, routineId: routine.id });
+  liveRef.current = { current, s, seq, soundOn, routineId: routine.id };
+
+  const notifiedIdxRef = useRef<number>(-1);
 
   useEffect(() => {
     cueFlagsRef.current = {};
     if (!current) return;
     setRemaining(current.duration);
-    if (current.kind === "task" && s.startCue) play("start");
-    else if (current.kind === "rest") play("restStart");
-    if (current.kind === "task" && s.notifyOnTaskStart) {
+    if (!soundOn) {
+      // nothing
+    } else if (current.kind === "task" && s.startCue) {
+      playCue(s.soundKit, "start", 0.5);
+    } else if (current.kind === "rest") {
+      playCue(s.soundKit, "restStart", 0.5);
+    }
+    if (
+      current.kind === "task" &&
+      s.notifyOnTaskStart &&
+      notifiedIdxRef.current !== idx
+    ) {
+      notifiedIdxRef.current = idx;
       notify(current.name, {
         body: `Task ${current.taskIndex + 1} of ${routine.tasks.length} · ${routine.name}`,
         tag: `simple-intervals-${routine.id}`,
@@ -104,24 +117,27 @@ export default function Runner({
     const tick = (now: number) => {
       const dt = (now - lastTickRef.current) / 1000;
       lastTickRef.current = now;
+      const { current: cur, s: cs, seq: cseq, soundOn: cSound } = liveRef.current;
+      if (!cur) return;
       setRemaining(prev => {
         const nx = prev - dt;
         const f = cueFlagsRef.current;
-        if (!f.half && current.kind === "task" && s.halfwayCue && prev > current.duration / 2 && nx <= current.duration / 2) {
+        const play = (cue: CueName) => { if (cSound) playCue(cs.soundKit, cue, 0.5); };
+        if (!f.half && cur.kind === "task" && cs.halfwayCue && prev > cur.duration / 2 && nx <= cur.duration / 2) {
           play("halfway"); f.half = true;
         }
-        if (current.kind === "task" && s.countdown321) {
+        if (cur.kind === "task" && cs.countdown321) {
           if (!f.c3 && prev > 3 && nx <= 3) { play("countdown"); f.c3 = true; }
           if (!f.c2 && prev > 2 && nx <= 2) { play("countdown"); f.c2 = true; }
           if (!f.c1 && prev > 1 && nx <= 1) { play("countdown"); f.c1 = true; }
         }
         if (nx <= 0) {
-          if (current.kind === "task" && s.endCue) play("end");
+          if (cur.kind === "task" && cs.endCue) play("end");
           const nextIdx = idx + 1;
           setTimeout(() => {
-            if (nextIdx >= seq.length) {
+            if (nextIdx >= cseq.length) {
               setFinished(true);
-              if (soundOn) playCue(s.soundKit, "end", 0.6);
+              if (cSound) playCue(cs.soundKit, "end", 0.6);
             } else setIdx(nextIdx);
           }, 0);
           return 0;
@@ -132,7 +148,7 @@ export default function Runner({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [idx, paused, finished, current, s, play, seq.length, soundOn]);
+  }, [idx, paused, finished]);
 
   useEffect(() => {
     if (finished) {
