@@ -1,5 +1,11 @@
 /* Global resets + keyframes + simple-intervals design tokens. */
 
+@property --p {
+  syntax: "<number>";
+  initial-value: 0;
+  inherits: true;
+}
+
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap");
 

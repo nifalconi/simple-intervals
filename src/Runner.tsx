@@ -272,7 +272,10 @@ export default function Runner({
                   {isCurrent && (
                     <div
                       className="fill"
-                      style={{ "--p": String(displayStyle === "drain" ? (1 - p) : p) } as CSSProperties}
+                      style={{
+                        transform: `scaleX(${displayStyle === "drain" ? (1 - p) : p})`,
+                        transformOrigin: displayStyle === "drain" ? "right" : "left",
+                      }}
                     />
                   )}
                   <div className="l-body">
@@ -316,7 +319,10 @@ export default function Runner({
         >
           <div
             className="fill"
-            style={{ "--p": String(displayStyle === "drain" ? (1 - p) : p) } as CSSProperties}
+            style={{
+              transform: `scaleX(${displayStyle === "drain" ? (1 - p) : p})`,
+              transformOrigin: displayStyle === "drain" ? "right" : "left",
+            }}
           />
           <div className="content">
             <div>
